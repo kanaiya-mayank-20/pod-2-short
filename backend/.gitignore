@@ -1,0 +1,91 @@
+# Secrets: only the .env.example template belongs in git
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Tooling caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Local artifacts
+.coverage
+htmlcov/
+
+
+
+
+
+
+
+
+
+
+# import boto3
+# import os
+# import subprocess
+# import urllib.parse
+
+# s3_client = boto3.client('s3')
+
+# def lambda_handler(event, context):
+#     for record in event['Records']:
+#         bucket_name = record['s3']['bucket']['name']
+#         # Decode the object key (handles spaces and special characters in filenames)
+#         object_key = urllib.parse.unquote_plus(record['s3']['object']['key'])
+        
+#         # Double check we are only acting on MP4 files in the inputs folder
+#         if not object_key.startswith('inputs/') or not object_key.endswith('.mp4'):
+#             continue
+            
+#         filename = os.path.basename(object_key)
+#         base_name = os.path.splitext(filename)[0]
+        
+#         # Paths in the ephemeral /tmp directory
+#         download_path = f'/tmp/{filename}'
+#         output_path = f'/tmp/{base_name}.mp3'
+        
+#         # 1. Download the MP4 file from S3 to /tmp
+#         print(f"Downloading {object_key}...")
+#         s3_client.download_file(bucket_name, object_key, download_path)
+        
+#         # 2. Run FFmpeg command
+#         # The layer places the executable in /opt/bin/ffmpeg
+#         ffmpeg_cmd = [
+#             '/opt/bin/ffmpeg',
+#             '-i', download_path,
+#             '-vn',                   # Disable video processing
+#             '-acodec', 'libmp3lame', # Force MP3 codec
+#             '-q:a', '2',             # Set high quality audio (VBR)
+#             '-y',                    # Overwrite output files
+#             output_path
+#         ]
+        
+#         print("Running FFmpeg...")
+#         try:
+#             subprocess.run(ffmpeg_cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#         except subprocess.CalledProcessError as e:
+#             print(f"FFmpeg failed: {e.stderr.decode('utf-8')}")
+#             raise e
+            
+#         # 3. Upload the MP3 back to S3 in the outputs/ folder
+#         output_key = f'outputs/{base_name}.mp3'
+#         print(f"Uploading to {output_key}...")
+#         s3_client.upload_file(output_path, bucket_name, output_key)
+        
+#         # 4. Clean up /tmp storage so it doesn't fill up on warm invocations
+#         os.remove(download_path)
+#         os.remove(output_path)
+        
+#         print(f"Successfully converted {filename} to MP3!")
+        
+#     return {
+#         'statusCode': 200,
+#         'body': 'Processing complete'
+#     }
